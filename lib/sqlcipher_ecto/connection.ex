@@ -11,7 +11,7 @@ if Code.ensure_loaded?(Sqlcx.Server) do
       case Sqlcx.Server.start_link(database, opts) do
         {:ok, pid} ->
           :ok = Sqlcx.Server.exec(pid, "PRAGMA foreign_keys = ON")
-          [[foreign_keys: 1]] = Sqlcx.Server.query(pid, "PRAGMA foreign_keys")
+          {:ok, [[foreign_keys: 1]]} = Sqlcx.Server.query(pid, "PRAGMA foreign_keys")
           {:ok, pid}
         error -> error
       end

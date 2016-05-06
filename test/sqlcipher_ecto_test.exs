@@ -270,7 +270,7 @@ defmodule Sqlcipher.Ecto.Test do
     assert stmt == ~s{CREATE TABLE "posts" ("author" TEXT, "price" INTEGER, "summary" TEXT, "body" TEXT, "title" TEXT DEFAULT 'Untitled' NOT NULL, "email" TEXT)}
 
     # verify the values have been preserved
-    [row] = Sqlcx.Server.query(sql, "SELECT * FROM posts")
+    {:ok, [row]} = Sqlcx.Server.query(sql, "SELECT * FROM posts")
     assert "jazzyb" == Keyword.get(row, :author)
     assert 2 == Keyword.get(row, :price)
     assert "Longer, more detailed statement." == Keyword.get(row, :body)
@@ -281,7 +281,7 @@ defmodule Sqlcipher.Ecto.Test do
 
   test "alter column errors" do
     alter = {:alter, table(:posts), [{:modify, :price, :numeric, [precision: 8, scale: 2]}]}
-    assert_raise ArgumentError, "ALTER COLUMN not supported by Sqlcipher", fn ->
+    assert_raise ArgumentError, "ALTER COLUMN not supported by SQLCipher", fn ->
       SQL.execute_ddl(alter)
     end
   end
