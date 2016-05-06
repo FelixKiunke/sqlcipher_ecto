@@ -1,36 +1,36 @@
-defmodule Sqlite.Ecto do
+defmodule Sqlcipher.Ecto do
   @moduledoc ~S"""
-  Ecto Adapter module for SQLite.
+  Ecto Adapter module for SQLCipher.
 
-  It uses Sqlitex and Esqlite for accessing the SQLite database.
+  It uses Sqlcx and Esqlcipher for accessing the SQLSipher database.
 
   ## Features
 
   ## Options
 
-  There are a limited number of options available because SQLite is so simple to use.
+  There are a limited number of options available because SQLite/SQLCipher is so simple to use.
 
   ### Compile time options
 
   These options should be set in the config file and require recompilation in
   order to make an effect.
 
-    * `:adapter` - The adapter name, in this case, `Sqlite.Ecto`
+    * `:adapter` - The adapter name, in this case, `Sqlcipher.Ecto`
     * `:timeout` - The default timeout to use on queries, defaults to `5000`
 
   ### Connection options
 
-    * `:database` - This option can take the form of a path to the SQLite
+    * `:database` - This option can take the form of a path to the SQLCipher
       database file or `":memory:"` for an in-memory database.  See the
       [SQLite docs](https://sqlite.org/uri.html) for more options such as
       shared memory caches.
 
   """
 
-  import Sqlite.Ecto.Util, only: [json_library: 0]
+  import Sqlcipher.Ecto.Util, only: [json_library: 0]
 
   # Inherit all behaviour from Ecto.Adapters.SQL
-  use Ecto.Adapters.SQL, :sqlitex
+  use Ecto.Adapters.SQL, :sqlcx
 
   # And provide a custom storage implementation
   @behaviour Ecto.Adapter.Storage
@@ -54,10 +54,10 @@ defmodule Sqlite.Ecto do
       {:error, :already_up}
     else
       database |> Path.dirname |> File.mkdir_p!
-      case Sqlitex.open(database) do
+      case Sqlcx.open(database) do
         {:error, _msg} = err -> err
         {:ok, db} ->
-          Sqlitex.close(db)
+          Sqlcx.close(db)
           :ok
       end
     end

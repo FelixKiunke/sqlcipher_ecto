@@ -1,3 +1,5 @@
+# FORK -> sqlcipher_ecto, we're gonna start again with v1.0.0
+
 # v1.1.0 (2016-01-24)
 * Release for Ecto 1.1+
 

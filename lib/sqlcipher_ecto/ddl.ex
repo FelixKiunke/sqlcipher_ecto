@@ -1,14 +1,14 @@
-defmodule Sqlite.Ecto.DDL do
+defmodule Sqlcipher.Ecto.DDL do
   @moduledoc false
 
   alias Ecto.Migration.Table
   alias Ecto.Migration.Index
   alias Ecto.Migration.Reference
-  import Sqlite.Ecto.Util, only: [assemble: 1, map_intersperse: 3, quote_id: 1]
+  import Sqlcipher.Ecto.Util, only: [assemble: 1, map_intersperse: 3, quote_id: 1]
 
   # Raise error on NoSQL arguments.
   def execute_ddl({_command, %Table{options: keyword}, _}) when is_list(keyword) do
-    raise ArgumentError, "SQLite adapter does not support keyword lists in :options"
+    raise ArgumentError, "SQLCipher adapter does not support keyword lists in :options"
   end
 
   # Create a table.
@@ -37,7 +37,7 @@ defmodule Sqlite.Ecto.DDL do
 
   # Rename a table column.
   def execute_ddl({:rename, %Table{}, _old_col, _new_col}) do
-    raise ArgumentError, "RENAME COLUMN not supported by SQLite"
+    raise ArgumentError, "RENAME COLUMN not supported by SQLCipher"
   end
 
   # Create an index.
@@ -58,7 +58,7 @@ defmodule Sqlite.Ecto.DDL do
 
   # Raise error on NoSQL arguments.
   def execute_ddl(keyword) when is_list(keyword) do
-    raise ArgumentError, "SQLite adapter does not support keyword lists in execute"
+    raise ArgumentError, "SQLCipher adapter does not support keyword lists in execute"
   end
 
   # Default:
@@ -122,7 +122,7 @@ defmodule Sqlite.Ecto.DDL do
   defp column_type(:serial, _opts), do: "INTEGER"
   defp column_type(:string, _opts), do: "TEXT"
   defp column_type(:map, _opts), do: "TEXT"
-  defp column_type({:array, _}, _opts), do: raise(ArgumentError, "Array type is not supported by SQLite")
+  defp column_type({:array, _}, _opts), do: raise(ArgumentError, "Array type is not supported by SQLCipher")
   defp column_type(type, _opts), do: type |> Atom.to_string |> String.upcase
 
   # NOTE SQLite requires autoincrement integers to be primary keys
@@ -189,10 +189,10 @@ defmodule Sqlite.Ecto.DDL do
   end
 
   defp alter_table_suffix(_table, {:modify, _column, _type, _opts}) do
-    raise ArgumentError, "ALTER COLUMN not supported by SQLite"
+    raise ArgumentError, "ALTER COLUMN not supported by SQLCipher"
   end
 
   defp alter_table_suffix(_table, {:remove, _column}) do
-    raise ArgumentError, "DROP COLUMN not supported by SQLite"
+    raise ArgumentError, "DROP COLUMN not supported by SQLCipher"
   end
 end

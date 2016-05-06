@@ -1,4 +1,4 @@
-defmodule Sqlite.Ecto.Error do
+defmodule Sqlcipher.Ecto.Error do
   defexception [:message, :sqlite]
 
   def message(%__MODULE__{sqlite: {type, msg}}), do: "#{type}: #{msg}"
@@ -7,12 +7,12 @@ defmodule Sqlite.Ecto.Error do
 
   # handle unique constraint failures
   def exception({:constraint, msg = 'UNIQUE constraint failed:' ++ _}) do
-    msg = to_string(msg) <> "; unique_constraint/3 is unsupported by SQLite"
+    msg = to_string(msg) <> "; unique_constraint/3 is unsupported by SQLCipher"
     %__MODULE__{sqlite: {:constraint, msg}}
   end
   # handle foreign key constraint failures
   def exception({:constraint, msg = 'FOREIGN KEY constraint failed'}) do
-    msg = to_string(msg) <> "; foreign_key_constraint/3 is unsupported by SQLite"
+    msg = to_string(msg) <> "; foreign_key_constraint/3 is unsupported by SQLCipher"
     %__MODULE__{sqlite: {:constraint, msg}}
   end
   def exception({type, msg}), do: %__MODULE__{sqlite: {type, to_string(msg)}}

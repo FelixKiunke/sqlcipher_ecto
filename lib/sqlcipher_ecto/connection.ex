@@ -1,32 +1,32 @@
-if Code.ensure_loaded?(Sqlitex.Server) do
-  defmodule Sqlite.Ecto.Connection do
+if Code.ensure_loaded?(Sqlcx.Server) do
+  defmodule Sqlcipher.Ecto.Connection do
     @moduledoc false
 
     @behaviour Ecto.Adapters.SQL.Query
 
-    # Connect to a new Sqlite.Server.  Enable and verify the foreign key
+    # Connect to a new Sqlcx.Server.  Enable and verify the foreign key
     # constraints for the connection.
     def connect(opts) do
       {database, opts} = Keyword.pop(opts, :database)
-      case Sqlitex.Server.start_link(database, opts) do
+      case Sqlcx.Server.start_link(database, opts) do
         {:ok, pid} ->
-          :ok = Sqlitex.Server.exec(pid, "PRAGMA foreign_keys = ON")
-          [[foreign_keys: 1]] = Sqlitex.Server.query(pid, "PRAGMA foreign_keys")
+          :ok = Sqlcx.Server.exec(pid, "PRAGMA foreign_keys = ON")
+          [[foreign_keys: 1]] = Sqlcx.Server.query(pid, "PRAGMA foreign_keys")
           {:ok, pid}
         error -> error
       end
     end
 
     def disconnect(pid) do
-      Sqlitex.Server.stop(pid)
+      Sqlcx.Server.stop(pid)
       :ok
     end
 
-    defdelegate to_constraints(error), to: Sqlite.Ecto.Error
+    defdelegate to_constraints(error), to: Sqlcipher.Ecto.Error
 
     ## Transaction
 
-    alias Sqlite.Ecto.Transaction
+    alias Sqlcipher.Ecto.Transaction
 
     defdelegate begin_transaction, to: Transaction
 
@@ -40,7 +40,7 @@ if Code.ensure_loaded?(Sqlitex.Server) do
 
     ## Query
 
-    alias Sqlite.Ecto.Query
+    alias Sqlcipher.Ecto.Query
 
     defdelegate query(pid, sql, params, opts), to: Query
 
@@ -58,7 +58,7 @@ if Code.ensure_loaded?(Sqlitex.Server) do
 
     ## DDL
 
-    alias Sqlite.Ecto.DDL
+    alias Sqlcipher.Ecto.DDL
 
     defdelegate execute_ddl(ddl), to: DDL
   end

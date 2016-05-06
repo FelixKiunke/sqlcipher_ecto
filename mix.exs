@@ -1,10 +1,10 @@
-defmodule Sqlite.Ecto.Mixfile do
+defmodule Sqlcipher.Ecto.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :sqlite_ecto,
-     version: "1.1.0",
-     name: "Sqlite.Ecto",
+    [app: :sqlcipher_ecto,
+     version: "1.0.0",
+     name: "Sqlcipher.Ecto",
      elixir: "~> 1.0",
      deps: deps,
 
@@ -20,7 +20,7 @@ defmodule Sqlite.Ecto.Mixfile do
      package: package,
 
      # docs
-     docs: [main: Sqlite.Ecto]]
+     docs: [main: Sqlcipher.Ecto]]
   end
 
   # Configuration for the OTP application
@@ -34,18 +34,18 @@ defmodule Sqlite.Ecto.Mixfile do
      {:ex_doc, "~> 0.7", only: :dev},
      {:ecto, "~> 1.1"},
      {:poison, "~> 1.0"},
-     {:sqlitex, "~> 0.8"}]
+     {:sqlcx, "~> 1.0"}]
   end
 
-  defp description, do: "SQLite3 adapter for Ecto"
+  defp description, do: "SQLCipher adapter for Ecto"
 
   defp package do
-    [maintainers: ["Jason M Barnes"],
+    [maintainers: ["Felix Kiunke"],
       licenses: ["MIT"],
-      links: %{"Github" => "https://github.com/jazzyb/sqlite_ecto"}]
+      links: %{"Github" => "https://github.com/FelixKiunke/sqlcipher_ecto"}]
   end
 
-  defp test_paths(:integration), do: ["integration/sqlite"]
+  defp test_paths(:integration), do: ["integration/sqlcipher"]
   defp test_paths(_), do: ["test"]
 
   defp test_integration(args) do

@@ -1,8 +1,8 @@
-defmodule Sqlite.Ecto.Query do
+defmodule Sqlcipher.Ecto.Query do
   @moduledoc false
 
-  import Sqlite.Ecto.Transaction, only: [with_savepoint: 2]
-  import Sqlite.Ecto.Util
+  import Sqlcipher.Ecto.Transaction, only: [with_savepoint: 2]
+  import Sqlcipher.Ecto.Util
 
   # ALTER TABLE queries:
   def query(pid, <<"ALTER TABLE ", _ :: binary>>=sql, params, opts) do
@@ -31,7 +31,7 @@ defmodule Sqlite.Ecto.Query do
   end
 
   def all(%Ecto.Query{lock: lock}) when lock != nil do
-    raise ArgumentError, "locks are not supported by SQLite"
+    raise ArgumentError, "locks are not supported by SQLCipher"
   end
   def all(query) do
     sources = create_names(query, :select)
@@ -48,7 +48,7 @@ defmodule Sqlite.Ecto.Query do
   end
 
   def update_all(%Ecto.Query{joins: [_ | _]}) do
-    raise ArgumentError, "JOINS are not supported on UPDATE statements by SQLite"
+    raise ArgumentError, "JOINS are not supported on UPDATE statements by SQLCipher"
   end
   def update_all(query) do
     sources = create_names(query, :update)
@@ -59,7 +59,7 @@ defmodule Sqlite.Ecto.Query do
   end
 
   def delete_all(%Ecto.Query{joins: [_ | _]}) do
-    raise ArgumentError, "JOINS are not supported on DELETE statements by SQLite"
+    raise ArgumentError, "JOINS are not supported on DELETE statements by SQLCipher"
   end
   def delete_all(query) do
     sources = create_names(query, :delete)
@@ -204,10 +204,10 @@ defmodule Sqlite.Ecto.Query do
   # from the database.
   defp do_query(pid, sql, params, opts) do
     opts = Keyword.put(opts, :bind, params)
-    case Sqlitex.Server.query(pid, sql, opts) do
+    case Sqlcx.Server.query(pid, sql, opts) do
       # busy error means another process is writing to the database; try again
       {:error, {:busy, _}} -> do_query(pid, sql, params, opts)
-      {:error, msg} -> {:error, Sqlite.Ecto.Error.exception(msg)}
+      {:error, msg} -> {:error, Sqlcipher.Ecto.Error.exception(msg)}
       rows when is_list(rows) -> query_result(pid, sql, rows)
     end
   end
@@ -231,12 +231,12 @@ defmodule Sqlite.Ecto.Query do
   end
 
   defp changes_result(pid) do
-    [["changes()": count]] = Sqlitex.Server.query(pid, "SELECT changes()")
+    [["changes()": count]] = Sqlcx.Server.query(pid, "SELECT changes()")
     {:ok, %{rows: nil, num_rows: count}}
   end
 
   # HACK: We have to do a special conversion if the user is trying to cast to
-  # a DATETIME type.  Sqlitex cannot determine that the type of the cast is a
+  # a DATETIME type.  Sqlcx cannot determine that the type of the cast is a
   # datetime value because datetime defaults to an integer type in SQLite.
   # Thus, we cast the value to a TEXT_DATETIME pseudo-type to preserve the
   # datetime string.  Then when we get here, we convert the string to an Ecto
@@ -324,7 +324,7 @@ defmodule Sqlite.Ecto.Query do
   defp distinct(%QueryExpr{expr: true}), do: "DISTINCT"
   defp distinct(%QueryExpr{expr: false}), do: []
   defp distinct(%QueryExpr{expr: exprs}) when is_list(exprs) do
-    raise ArgumentError, "DISTINCT with multiple columns is not supported by SQLite"
+    raise ArgumentError, "DISTINCT with multiple columns is not supported by SQLCipher"
   end
 
   defp from(sources) do
@@ -344,7 +344,7 @@ defmodule Sqlite.Ecto.Query do
   defp expr({:&, _, [idx]}, sources) do
     {table, name, model} = elem(sources, idx)
     unless model do
-      raise ArgumentError, "SQLite requires a model when using selector #{inspect name} but " <>
+      raise ArgumentError, "SQLCipher requires a model when using selector #{inspect name} but " <>
                            "only the table #{inspect table} was given. Please specify a model " <>
                            "or specify exactly which fields from #{inspect name} you desire"
     end
@@ -376,7 +376,7 @@ defmodule Sqlite.Ecto.Query do
   end
 
   defp expr({:fragment, _, [kw]}, _sources) when is_list(kw) or tuple_size(kw) == 3 do
-    raise ArgumentError, "SQLite adapter does not support keyword or interpolated fragments"
+    raise ArgumentError, "SQLCipher adapter does not support keyword or interpolated fragments"
   end
 
   defp expr({:fragment, _, parts}, sources) do
@@ -452,7 +452,7 @@ defmodule Sqlite.Ecto.Query do
   end
 
   defp interval(_, "microsecond", _sources) do
-    raise ArgumentError, "SQLite does not support microsecond precision in datetime intervals"
+    raise ArgumentError, "SQLCipher does not support microsecond precision in datetime intervals"
   end
 
   defp interval(count, "millisecond", sources) do
@@ -477,10 +477,10 @@ defmodule Sqlite.Ecto.Query do
 
   defp ecto_to_sqlite_type(type) do
     case type do
-      {:array, _} -> raise ArgumentError, "Array type is not supported by SQLite"
+      {:array, _} -> raise ArgumentError, "Array type is not supported by SQLCipher"
       :id -> "INTEGER"
       :binary_id -> "TEXT"
-      :uuid -> "TEXT" # SQLite does not support UUID
+      :uuid -> "TEXT" # SQLCipher does not support UUID
       :binary -> "BLOB"
       :float -> "NUMERIC"
       :string -> "TEXT"
@@ -569,7 +569,7 @@ defmodule Sqlite.Ecto.Query do
     [quoted, "=", quoted, "+", expr(value, sources)]
   end
   defp update_op(op, _key, _value, _sources) do
-    raise ArgumentError, "Unknown update operation #{inspect op} for SQLite"
+    raise ArgumentError, "Unknown update operation #{inspect op} for SQLCipher"
   end
 
   defp join([], _sources), do: []
@@ -591,9 +591,9 @@ defmodule Sqlite.Ecto.Query do
   defp join_qual(:inner), do: "INNER"
   defp join_qual(:left),  do: "LEFT"
   defp join_qual(:right) do
-    raise ArgumentError, "RIGHT OUTER JOIN not supported by SQLite"
+    raise ArgumentError, "RIGHT OUTER JOIN not supported by SQLCipher"
   end
   defp join_qual(:full) do
-    raise ArgumentError, "FULL OUTER JOIN not supported by SQLite"
+    raise ArgumentError, "FULL OUTER JOIN not supported by SQLCipher"
   end
 end

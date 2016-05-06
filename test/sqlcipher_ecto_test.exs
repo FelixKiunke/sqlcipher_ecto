@@ -1,7 +1,7 @@
-defmodule Sqlite.Ecto.Test do
+defmodule Sqlcipher.Ecto.Test do
   use ExUnit.Case, async: true
 
-  alias Sqlite.Ecto.Connection, as: SQL
+  alias Sqlcipher.Ecto.Connection, as: SQL
   alias Ecto.Migration.Table
 
   setup do
@@ -11,25 +11,25 @@ defmodule Sqlite.Ecto.Test do
 
   test "storage up (twice)" do
     tmp = [database: tempfilename]
-    assert Sqlite.Ecto.storage_up(tmp) == :ok
+    assert Sqlcipher.Ecto.storage_up(tmp) == :ok
     assert File.exists? tmp[:database]
-    assert Sqlite.Ecto.storage_up(tmp) == {:error, :already_up}
+    assert Sqlcipher.Ecto.storage_up(tmp) == {:error, :already_up}
     File.rm(tmp[:database])
   end
 
   test "storage down (twice)" do
     tmp = [database: tempfilename]
-    assert Sqlite.Ecto.storage_up(tmp) == :ok
-    assert Sqlite.Ecto.storage_down(tmp) == :ok
+    assert Sqlcipher.Ecto.storage_up(tmp) == :ok
+    assert Sqlcipher.Ecto.storage_down(tmp) == :ok
     assert not File.exists? tmp[:database]
-    assert Sqlite.Ecto.storage_down(tmp) == {:error, :already_down}
+    assert Sqlcipher.Ecto.storage_down(tmp) == {:error, :already_down}
   end
 
   test "storage up creates directory" do
-    dir = "/tmp/my_sqlite_ecto_directory/"
+    dir = "/tmp/my_sqlcipher_ecto_directory/"
     File.rm_rf! dir
     tmp = [database: dir <> tempfilename]
-    :ok = Sqlite.Ecto.storage_up(tmp)
+    :ok = Sqlcipher.Ecto.storage_up(tmp)
     assert File.exists?(dir <> "tmp/") && File.dir?(dir <> "tmp/")
   end
 
@@ -270,7 +270,7 @@ defmodule Sqlite.Ecto.Test do
     assert stmt == ~s{CREATE TABLE "posts" ("author" TEXT, "price" INTEGER, "summary" TEXT, "body" TEXT, "title" TEXT DEFAULT 'Untitled' NOT NULL, "email" TEXT)}
 
     # verify the values have been preserved
-    [row] = Sqlitex.Server.query(sql, "SELECT * FROM posts")
+    [row] = Sqlcx.Server.query(sql, "SELECT * FROM posts")
     assert "jazzyb" == Keyword.get(row, :author)
     assert 2 == Keyword.get(row, :price)
     assert "Longer, more detailed statement." == Keyword.get(row, :body)
@@ -281,21 +281,21 @@ defmodule Sqlite.Ecto.Test do
 
   test "alter column errors" do
     alter = {:alter, table(:posts), [{:modify, :price, :numeric, [precision: 8, scale: 2]}]}
-    assert_raise ArgumentError, "ALTER COLUMN not supported by SQLite", fn ->
+    assert_raise ArgumentError, "ALTER COLUMN not supported by Sqlcipher", fn ->
       SQL.execute_ddl(alter)
     end
   end
 
   test "rename column errors" do
     rename = {:rename, table(:posts), :given_name, :first_name}
-    assert_raise ArgumentError, "RENAME COLUMN not supported by SQLite", fn ->
+    assert_raise ArgumentError, "RENAME COLUMN not supported by SQLCipher", fn ->
       SQL.execute_ddl(rename)
     end
   end
 
   test "drop column errors" do
     alter = {:alter, table(:posts), [{:remove, :summary}]}
-    assert_raise ArgumentError, "DROP COLUMN not supported by SQLite", fn ->
+    assert_raise ArgumentError, "DROP COLUMN not supported by SQLCipher", fn ->
       SQL.execute_ddl(alter)
     end
   end
@@ -314,10 +314,10 @@ defmodule Sqlite.Ecto.Test do
       field :y, :integer
       field :z, :integer
 
-      has_many :comments, Sqlite.Ecto.Test.Model2,
+      has_many :comments, Sqlcipher.Ecto.Test.Model2,
         references: :x,
         foreign_key: :z
-      has_one :permalink, Sqlite.Ecto.Test.Model3,
+      has_one :permalink, Sqlcipher.Ecto.Test.Model3,
         references: :y,
         foreign_key: :id
     end
@@ -327,7 +327,7 @@ defmodule Sqlite.Ecto.Test do
     use Ecto.Model
 
     schema "model2" do
-      belongs_to :post, Sqlite.Ecto.Test.Model,
+      belongs_to :post, Sqlcipher.Ecto.Test.Model,
         references: :x,
         foreign_key: :z
     end
@@ -344,8 +344,8 @@ defmodule Sqlite.Ecto.Test do
   end
 
   defp normalize(query, operation \\ :all) do
-    {query, _params, _key} = Ecto.Query.Planner.prepare(query, operation, Sqlite.Ecto)
-    Ecto.Query.Planner.normalize(query, operation, Sqlite.Ecto)
+    {query, _params, _key} = Ecto.Query.Planner.prepare(query, operation, Sqlcipher.Ecto)
+    Ecto.Query.Planner.normalize(query, operation, Sqlcipher.Ecto)
   end
 
   test "from" do
@@ -357,7 +357,7 @@ defmodule Sqlite.Ecto.Test do
     query = "posts" |> select([r], r.x) |> normalize
     assert SQL.all(query) == ~s{SELECT p0."x" FROM "posts" AS p0}
 
-    assert_raise ArgumentError, ~r"SQLite requires a model", fn ->
+    assert_raise ArgumentError, ~r"SQLCipher requires a model", fn ->
       SQL.all from(p in "posts", select: p) |> normalize()
     end
   end
@@ -376,7 +376,7 @@ defmodule Sqlite.Ecto.Test do
   end
 
   test "distinct" do
-    assert_raise ArgumentError, "DISTINCT with multiple columns is not supported by SQLite", fn ->
+    assert_raise ArgumentError, "DISTINCT with multiple columns is not supported by SQLCipher", fn ->
       query = Model |> distinct([r], r.x) |> select([r], {r.x, r.y}) |> normalize
       SQL.all(query)
     end
@@ -422,7 +422,7 @@ defmodule Sqlite.Ecto.Test do
   end
 
   test "lock" do
-    assert_raise ArgumentError, "locks are not supported by SQLite", fn ->
+    assert_raise ArgumentError, "locks are not supported by SQLCipher", fn ->
       query = Model |> lock("FOR SHARE NOWAIT") |> select([], 0) |> normalize
       SQL.all(query)
     end
@@ -473,7 +473,7 @@ defmodule Sqlite.Ecto.Test do
     assert SQL.all(query) == ~s{SELECT ltrim(m0."x", ?) FROM "model" AS m0}
 
     query = Model |> select([], fragment(title: 2)) |> normalize
-    assert_raise ArgumentError, "SQLite adapter does not support keyword or interpolated fragments", fn ->
+    assert_raise ArgumentError, "SQLCipher adapter does not support keyword or interpolated fragments", fn ->
       SQL.all(query)
     end
   end
@@ -502,7 +502,7 @@ defmodule Sqlite.Ecto.Test do
     query = Model |> select([], type(^"601d74e4-a8d3-4b6e-8365-eddb4c893327", Ecto.UUID)) |> normalize
     assert SQL.all(query) == ~s{SELECT CAST (? AS TEXT) FROM "model" AS m0}
 
-    assert_raise ArgumentError, "Array type is not supported by SQLite", fn ->
+    assert_raise ArgumentError, "Array type is not supported by SQLCipher", fn ->
       query = Model |> select([], type(^[1,2,3], {:array, :integer})) |> normalize
       SQL.all(query)
     end
@@ -661,7 +661,7 @@ defmodule Sqlite.Ecto.Test do
     query = from(m in Model, update: [set: [x: ^0]]) |> normalize(:update_all)
     assert SQL.update_all(query) == ~s{UPDATE "model" SET "x" = ?}
 
-    assert_raise ArgumentError, "JOINS are not supported on UPDATE statements by SQLite", fn ->
+    assert_raise ArgumentError, "JOINS are not supported on UPDATE statements by SQLCipher", fn ->
       query = Model |> join(:inner, [p], q in Model2, p.x == q.z)
                     |> update([_], set: [x: 0]) |> normalize(:update_all)
       SQL.update_all(query)
@@ -675,7 +675,7 @@ defmodule Sqlite.Ecto.Test do
     query = from(e in Model, where: e.x == 123) |> normalize
     assert SQL.delete_all(query) == ~s{DELETE FROM "model" WHERE ("model"."x" = 123)}
 
-    assert_raise ArgumentError, "JOINS are not supported on DELETE statements by SQLite", fn ->
+    assert_raise ArgumentError, "JOINS are not supported on DELETE statements by SQLCipher", fn ->
       query = Model |> join(:inner, [p], q in Model2, p.x == q.z) |> normalize
       SQL.delete_all(query)
     end

@@ -29,7 +29,7 @@ pool =
 alias Ecto.Integration.TestRepo
 
 Application.put_env(:ecto, TestRepo,
-  adapter: Sqlite.Ecto,
+  adapter: Sqlcipher.Ecto,
   database: "/tmp/test_repo.db",
   pool: Ecto.Adapters.SQL.Sandbox)
 
@@ -41,7 +41,7 @@ end
 alias Ecto.Integration.PoolRepo
 
 Application.put_env(:ecto, PoolRepo,
-  adapter: Sqlite.Ecto,
+  adapter: Sqlcipher.Ecto,
   pool: pool,
   database: "/tmp/test_repo.db",
   pool_size: 10)

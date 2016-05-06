@@ -1,7 +1,7 @@
-defmodule Sqlite.Ecto.Transaction do
+defmodule Sqlcipher.Ecto.Transaction do
   @moduledoc false
 
-  import Sqlite.Ecto.Util, only: [exec: 2, random_id: 0]
+  import Sqlcipher.Ecto.Util, only: [exec: 2, random_id: 0]
 
   def begin_transaction, do: "BEGIN"
 
